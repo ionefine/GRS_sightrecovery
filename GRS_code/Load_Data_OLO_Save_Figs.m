@@ -9,6 +9,9 @@ sub_anat='mmSR20151113'; % anatomy data
 
 nStim=72;
 session_dir={['Videostim.sm0.', hemi_list{h}], ['Audiostim.sm0.', hemi_list{h}]};
+%roi_file={'.V1.label', '.V2.label'}; 
+%roi_file={'.TS.VTC_first.label'};
+roi_file={'.MT.label'};
 % the first file is used as the sort index
 
 %% set up directories
@@ -29,7 +32,12 @@ addpath(genpath(code_dir))
 cd(anatomies_dir)
 cd([sub_anat,filesep, 'label'])
 disp('loading the label file')
-[vertex,x, y, z]=readCortexLabels([hemi_list{h}, '.TS.VTC_first.label']);
+vertex=[]; x=[]; y=[]; z=[];
+for r=1:length(roi_file)
+[tmp1,tmp2, tmp3, tmp4]=readCortexLabels([hemi_list{h}, roi_file{r}]);
+vertex=cat(1, vertex,tmp1);
+x=cat(1, x,tmp2); y=cat(1, y,tmp3); z=cat(1, z,tmp4);
+end
 % the size of vertex, x, y, z is smaller than max(vertex) because some
 % vertices aren't labelled.
 vertXYZ=[x y z]; % x yz position of each vertex
@@ -54,13 +62,14 @@ maxsize=2000; % how big a matrix do I want to use for OLO, set to Inf if you wan
 disp(['matrix size is ', num2str(size(beta(1).vox,1))]);
 keepIterating=1;
 family=1:length(beta(1).vox);
+beta(1).ccmap=corrcoef(beta(1).vox'); % cross correlation map
 while keepIterating
     if length(unique(family))<maxsize
         keepIterating=0;
     else% while ccmatrix still going to be too big
         thr=thr-thr_step; % gradually reduce the threshold for merging
         disp(['reducing interation. Correlation threshold = ',num2str(thr)]);
-        beta(1).ccmap=corrcoef(beta(1).vox'); % cross correlation map
+
         family=zeros(size(beta(1).vox,1), 1); % entries are filled in as they join a family
         for t=1:length(beta(1).ccmap) % for each voxel
             if var(beta(1).vox(t, :))==0 % put duff voxels in a bad family
@@ -95,7 +104,7 @@ end
 
 %% image the first OLO matrix (full voxel space)
 subplot(1,length(session_dir),1)
-imagesc(beta(1).ccmap(re_exp_index, re_exp_index));
+image(beta(1).ccmap(re_exp_index, re_exp_index)*255);colormap(gray(256));
 title(session_dir{1})
 
 %% load and image comparison beta files (full voxel space)
@@ -110,7 +119,7 @@ for n=2:length(session_dir)
     end
     beta(n).ccmap=corrcoef(beta(n).vox');
     subplot(1,length(session_dir),n)
-    imagesc(beta(n).ccmap(re_exp_index, re_exp_index));
+    image(beta(n).ccmap(re_exp_index, re_exp_index)*255); colormap(gray(256));
     title(session_dir{n})
 end
 
@@ -120,7 +129,7 @@ allmat=.5*ones(length(re_exp_index), length(re_exp_index), 3);
 for n=1:min([length(session_dir), 3]) % overlap the first three beta weight sets on the list
     allmat(:, :,n)=beta(n).ccmap(re_exp_index, re_exp_index);
 end
-imagesc(allmat);axis equal; axis square; drawnow; 
+image(allmat);axis equal; axis square; drawnow; 
 
 %% manually select clusters (full voxel space)
 nc=input('How many clusters do you want to select? ...');
