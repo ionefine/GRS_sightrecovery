@@ -19,9 +19,9 @@ hemi_list={'lh', 'rh'}; % eventually do both hemispheres
 sub_anat='mmSR20151113'; % anatomy data
 
 h=1;
-session_dir={['Videostim.sm0.', hemi_list{h}], ['Audiostim.sm0.', hemi_list{h}]}; 
-% the files we are going to look at using that sortfile index, using the
-% first as the sorter
+session_dir={['Videostim.sm0.', hemi_list{h}], ['Audiostim.sm0.', hemi_list{h}]};
+% the files we are going to look at using that sortfile index, just make it a convention
+% that the first is used as the sorter
 
 % pull in the label file and use it to subsample vertices based on them
 % belonging to a single voxel
@@ -32,22 +32,22 @@ disp('loading the label file')
 [vox, unique_vox_ind,restore_vert]=unique(round([x y z]), 'rows');
 
 clear jnk1 jnk2 jnk3 x y z
-% eureka! the size of vertex, x, y, z is smaller than the max vertex. That
+% the size of vertex, x, y, z is smaller than the max vertex. That
 % is because some vertices aren't labelled. But we probably don't care
 % about those, so wtf
 
 % configuration details
 nStim=72;
 
-% load in beta weights
+% load in beta weights, using the first file in the list
 cd(functional_dir);
 cd(session_dir{1});
 if strcmp(whois, 'IF')
     tmp=load('beta');
-    beta_vox=squeeze(tmp.tmp.vol(1,unique_vox_ind, 1,1:nStim)); % number of unique vox by number of regressors
+    beta(1).vox=squeeze(tmp.tmp.vol(1,unique_vox_ind, 1,1:nStim)); % number of unique vox by number of regressors
 else
-tmp=MRIread('beta.nii.gz');
-beta_vox=squeeze(tmp.vol(1,unique_vox_ind, 1,1:nStim)); % number of unique vox by number of regressors
+    tmp=MRIread('beta.nii.gz');
+    beta(1).vox=squeeze(tmp.vol(1,unique_vox_ind, 1,1:nStim)); % number of unique vox by number of regressors
 end
 
 % so the default max array size for regression is limited, if beta is
@@ -59,22 +59,22 @@ end
 thr=1;
 thr_step=.05;
 maxsize=2000; % how big a matrix do I want to use for OLO, set to Inf if you want the biggest matrix possible, remember olo will be slow
-disp(['matrix size is ', num2str(size(beta_vox,1))]);
+disp(['matrix size is ', num2str(size(beta(1).vox,1))]);
 keepIterating=1;
-family=1:length(beta_vox);
+family=1:length(beta(1).vox);
 while keepIterating
     if length(unique(family))<maxsize % still works if maxsize inf because doesn't execute if try fails
         keepIterating=0;
     else% while ccmatrix still going to be too big
         thr=thr-thr_step; % gradually reduce the threshold for merging
-        disp(['reducing interation. Correlation threshold = ',num2str(thr)])     
-        beta_ccmap=corrcoef(beta_vox'); %cross correlation map
-        family=zeros(size(beta_vox,1), 1); %Remake family matrix; entries are zeroed as their value is collapsed into other entries.
-        for t=1:length(beta_ccmap) % for each voxel
-            if var(beta_vox(t, :))==0
+        disp(['reducing interation. Correlation threshold = ',num2str(thr)])
+        beta(1).ccmap=corrcoef(beta(1).vox'); %cross correlation map
+        family=zeros(size(beta(1).vox,1), 1); %Remake family matrix; entries are zeroed as their value is collapsed into other entries.
+        for t=1:length(beta(1).ccmap) % for each voxel
+            if var(beta(1).vox(t, :))==0
                 family(t)=-1000;
             elseif family(t)==0  %family is vector os length beta+vox, if a entry is 0 it Nans the whole row of the
-                same=find(beta_ccmap(t,:)>thr);
+                same=find(beta(1).ccmap(t,:)>thr);
                 family(t)=t;
                 family(same)=t;
             end
@@ -86,31 +86,62 @@ end % did initial check show that reduction required
 uvals=setdiff(unique(family), -1000);
 for i=1:length(uvals)
     re_exp(i).ind=find(family==uvals(i));
-    mnbeta(i, :)=nanmean(squeeze(beta_vox(re_exp(i).ind, :)), 1); % create a canonical beta weight profile for each voxel
+    beta(1).mn(i, :)=nanmean(squeeze(beta(1).vox(re_exp(i).ind, :)), 1); % create a canonical beta weight profile for each voxel
 end
 
-%%%Olo stuff
-cc_mat=corrcoef(mnbeta');
+%%% Olo stuff
+cc_mat=corrcoef(beta(1).mn');
 d = pdist(cc_mat);
 tree = linkage(d);
 leafOrder=optimalleaforder(tree, d);
 %%%
 
 %%%Re-expansion
-beta_vox_reexp=[];
 re_exp_index=[];
-
+% create the reexpanded leaf index
 for r=1:length(leafOrder)
-    %     beta_vox_reexp=[beta_vox_reexp;beta_vox(beta_coords3{leafOrder(r)},:)];
-    %re_exp_index=[Re_exp_index; beta_coords3{leafOrder(r)}];
+    % beta_vox_reexp=[beta_vox_reexp;beta_vox(beta_coords3{leafOrder(r)},:)];
+    % re_exp_index=[Re_exp_index; beta_coords3{leafOrder(r)}];
     re_exp_index=[re_exp_index; re_exp(leafOrder(r)).ind];
 end
-[x,y] = ginput(2);
-clusterx=
+subplot(1,length(session_dir),1)
+imagesc(beta(1).ccmap(re_exp_index, re_exp_index));
+title(session_dir{1})
 
+% now load the remaining beta files and compare their olo maps
+for n=2:length(session_dir)
+    cd(functional_dir);
+    cd(session_dir{n});
+    if strcmp(whois, 'IF')
+        tmp=load('beta');
+        beta(n).vox=squeeze(tmp.tmp.vol(1,unique_vox_ind, 1,1:nStim)); % number of unique vox by number of regressors
+    else
+        tmp=MRIread('beta.nii.gz');
+        beta(n).vox=squeeze(tmp.vol(1,unique_vox_ind, 1,1:nStim)); % number of unique vox by number of regressors
+    end
+    beta(n).ccmap=corrcoef(beta(n).vox');
+    subplot(1,length(session_dir),n)
+    imagesc(beta(n).ccmap(re_exp_index, re_exp_index));
+    title(session_dir{n})
+end
+
+figure(1)
+allmat(:, :,1)=beta(1).ccmap(re_exp_index, re_exp_index);
+allmat(:, :,2)=beta(1).ccmap(re_exp_index, re_exp_index);
+allmat(:, :,3)=.5;
+imagesc(allmat)
+
+[x,y] = ginput(2);
+voxinC=re_exp_index(round(x(1):x(2))); % the voxels in the cluster
+uniquevert=vertex(voxinC); 
+vertinC=uniquevert(restore_vert);
+% I think this is what goes in the label file. So the next thing is to
+% create one based on readCortexLabel
+
+return
 beta_vox_reexp=beta_vox(re_exp_index,:);
 sorted_full_ccmap=(corrcoef(beta_vox_reexp'));
-return
+
 % pull out a cluster
 [x,y] = ginput(2)
 beta_voxNZ=beta_vox;
