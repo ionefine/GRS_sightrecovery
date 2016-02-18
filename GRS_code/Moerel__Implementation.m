@@ -4,12 +4,12 @@ close all
 %% flags for what to run
 whois='IF';
 % subject and hemisphere list
-hemi_list={'rh'}; h=1; % eventually do both hemispheres
+hemi_list={'lh'}; h=1; % eventually do both hemispheres
 sub_anat='mmSR20151113'; % anatomy data
 
 nStim=72;
 session_dir={['Audiostim.sm0.', hemi_list{h}]};
-roifilename={'.V1.label', '.V2.label',  '.MT.label', '.BA6.label', '.BA45.label'}%'.TS.VTC_first.label',
+roifilename={'.V1.label', '.V2.label',  '.MT.label', '.TS.VTC_first.label', '.BA6.label', '.BA45.label'}%,
 % the first file is used as the sort index
 writeroifilename={'.V1_CA.label', '.V2_CA.label', '.TS.VTC_first_CA.label', '.MT_CA.label', '.BA6_CA.label',  '.BA45_CA.label'};
 %% set up directories
@@ -112,8 +112,7 @@ for r=1:length(roifilename)
     drawnow
     ind=find([vox(:).err]<statLims(1));
     W=[vox(ind).W]';
-   return
-%     
+  
 %     imagesc(W)
 %     T = clusterdata(W,10.5); 
 %     
