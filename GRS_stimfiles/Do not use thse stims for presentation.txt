@@ -1,0 +1,5 @@
+Do not use these stimuli for presentation without confirming that the presentation program 
+will play them all correctly.  They are variable bitrate, and will be played at the wrong 
+speed if presentation is bitrate-constant.  
+
+-Tristram Savage. 2.14.2016
