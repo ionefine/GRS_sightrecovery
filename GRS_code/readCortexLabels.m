@@ -9,17 +9,6 @@ if nargin<=2
     endRow = inf;
 end
 
-%% Format string for each line of text:
-%   column1: double (%f)
-%	column2: text (%s)
-%   column3: double (%f)
-%	column4: text (%s)
-%   column5: double (%f)
-%	column6: text (%s)
-%   column7: double (%f)
-%	column8: double (%f)
-%   column9: text (%s)
-% For more information, see the TEXTSCAN documentation.
 formatSpec = '%f%s%f%s%f%s%f%f%s%[^\n\r]';
 
 %% Open the text file.

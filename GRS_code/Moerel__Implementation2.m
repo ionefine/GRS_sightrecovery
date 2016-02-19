@@ -1,24 +1,25 @@
+
 clear all
 close all
-%%
+
+%% TODO
 % right hemisphere ventral
 % auditory ROIS
 % Marty's, Mello
+% implement a pwelch
+% run the whole brain, and save all the interesting voxe
 
 %% flags for what to run
 whois='IF';
 % subject and hemisphere list
-hemi_list={'lh'}; h=1; % eventually do both hemispheres
+hemi_list={'rh'}; h=1; % eventually do both hemispheres
 sub_anat='mmSR20151113'; % anatomy data
 
 nStim=72;
 session_dir={['Audiostim.sm0.', hemi_list{h}]};
-if strcmp(hemi_list{1}, 'lh')
-    roifilename={'.V1.label', '.V2.label',  '.MT.label', '.BA6.label', '.BA45.label', '.TS.VTC_first.label'}
-else
-    roifilename={'.V1.label', '.V2.label',  '.MT.label', '.BA6.label', '.BA45.label'}
-end
-
+roifilename={  '.MT.label'}%'.V2.label', ,'.TS.VTC_first.label','.V1.label',, '.BA45.label'
+% the first file is used as the sort index
+writeroifilename={'.V1_CA.label', '.V2_CA.label', '.TS.VTC_first_CA.label', '.MT_CA.label', '.BA6_CA.label',  '.BA45_CA.label'};
 %% set up directories
 if 0
     code_dir='/project_space/Finelab/GRS_sightrecovery';
@@ -31,15 +32,15 @@ elseif strcmp(whois, 'IF')
 end
 addpath(genpath(code_dir))
 
-%% read in and analyse audio files, A is nStim x nFreq bands
+%% read in and analyse audio files
 cd(audio_dir)
 audioFilenames=Stim_List_As_Presented_Nov_2016;
-freq_bins=round(exp(linspace(log(50), log(8000),8)));
+freq_bins=round(exp(linspace(log(50), log(5000), 5)));
 freq_bins=[0,freq_bins, inf];
 % find the power in each frequency bin
 for a=1:length(audioFilenames)
-    [y,Fs] = audioread(audioFilenames{a}) ; y=mean(y, 2);
-    maxt = length(y)/Fs;   
+    [y,Fs] = audioread(audioFilenames{a}) ; y=y(:, 1);
+    maxt = length(y)/Fs;
     t = linspace(0,maxt,length(y));
     Y = complex2real(fft(y),t);
     for f=1:length(freq_bins)-1
@@ -47,27 +48,7 @@ for a=1:length(audioFilenames)
         A(a, f)=mean(Y.amp(ind));
     end
 end
-
-freq_bins=freq_bins(1:end-1);
-% 
-for a=1:size(A, 2) % for each frequency band
-     A(:, a)=scaleif(A(:, a)); % make all stimuli equally loud
-end
-  
-% % the bootstrapped audio stimuli, scrambling over frequencies, this works
-% too well
-% for f=1:size(A, 2)
-%     Ab(:, f)=A(randperm(size(A,1)), f); % for each freq bin, shuffle across stimuli
-% end
-% the bootstrapped audio stimuli, scrambling over stimuli
-
-
-% for f=1:size(A, 2)
-%     Ab(:, )=A(s, randperm(size(A,2))); % for each freq bin, shuffle across stimuli
-% end
-Ab=A(randperm(size(A,1)), :);
-A=A(1:nStim,:);Ab=Ab(1:nStim,:);
-
+A=A(1:nStim,:);
 %% load in the beta weights
 cd([functional_dir, filesep, session_dir{1}]);
 if strcmp(whois, 'IF')
@@ -85,43 +66,44 @@ for r=1:length(roifilename)
     cd([sub_anat,filesep, 'label'])
     [roi(r).vertex,x, y, z]=readCortexLabels([hemi_list{h}, roifilename{r}]);
     clear vox voxb
-    
-    for v=1:length(roi(r).vertex)
-        if mod(v, 1000)==0
-            disp(['processing voxel ', num2str(v), ' out of ', num2str(length(roi(r).vertex))])
+    for rep=1:10
+        AM=A;
+        for v=1:length(roi(r).vertex)
+            if var(beta(roi(r).vertex(v)+1,:))>0
+                B=scaleif(beta(roi(r).vertex(v)+1,:), -1, 1);
+                if rep>1
+                    AM=AM(randperm(size(AM,1)), :);
+                end   
+                W=pinv(AM)*B';
+                P=AM*W; % predicted betas
+                err=sum(sqrt((P'-B).^2));
+                vox(rep,v).B=B; vox(rep,v).W=W; vox(rep,v).P=P; vox(rep,v).err=err;
+            else
+                vox(rep,v).B=NaN; vox(rep,v).W=NaN; vox(rep,v).P=NaN; vox(rep,v).err=NaN;    
+            end
         end
-        if var(beta(roi(r).vertex(v)+1,:))>0
-            Ab=A(randperm(size(A,1)), :);
-            B=scaleif(beta(roi(r).vertex(v)+1,:));%B=B./mean(B);%B=B./std(B); % zero mean and unit variance
-            W=pinv(A)*B';  Wb=pinv(Ab)*B'; % find the weights for each frequency bin
-            P=A*W; Pb=Ab*Wb;% predicted betas
-            err=mean(sqrt((P'-B).^2)); errb=mean(sqrt((Pb'-B).^2));
-            vox(v).B=B; vox(v).W=W; vox(v).P=P; vox(v).err=err;
-            voxb(v).B=B; voxb(v).W=Wb; voxb(v).P=Pb; voxb(v).err=errb;
-        else
-            vox(v).B=NaN; vox(v).W=NaN; vox(v).P=NaN; vox(v).err=NaN;
-            voxb(v).B=NaN; voxb(v).W=NaN; voxb(v).P=NaN; voxb(v).err=NaN;
-        end   
     end
     subplot(2, ceil(length(roifilename)/2), r)
-    statLims=prctile([voxb(:).err], [1]); % do any voxels have fit values significantly higher or lower than expected?
-    n=hist([vox(:).err],5:30);
-    nb=hist([voxb(:).err],5:30);
+    
+    statLims=prctile([vox(2:9,:).err], [1, 5]); % do any voxels have fit values significantly higher or lower than expected?
+    n=hist([vox(1,:).err],5:30);n=n./sum(n);
+    nb=hist([vox(2:end,:).err],5:30);nb=nb./sum(nb);
     plot(5:30, n, 'r-', 'LineWidth', 2);hold on;
     plot(5:30, nb, 'k-', 'LineWidth', 1);
     plot([statLims(1) statLims(1)], [0 max(n)*1.1])
     set(gca, 'YLim', [0 max(n)*1.1])
     title(roifilename{r})
     drawnow
-    ind=find([vox(:).err]<statLims(1));
+    ind=find([vox(1,:).err]<statLims(1));
     W=[vox(ind).W]';
-  
-%     imagesc(W)
-%     T = clusterdata(W,10.5); 
-%     
-%     for p=1:10
-%         plot(freq_bins(2:end-1),mean(W(find(T==p), :), 1)); hold on
-%     end
+    
+    imagesc(W)
+    %     T = clusterdata(W,10.5);
+    %
+    %     for p=1:10
+    %         plot(freq_bins(2:end-1),mean(W(find(T==p), :), 1)); hold on
+    %     end
+    %     return
     
 end
 
@@ -130,4 +112,3 @@ end
 %     cd(anatomies_dir)
 %     cd([sub_anat,filesep, 'label'])
 %     writeCortexLabels([hemi_list{h}, '.',writeroifilename, '.label'], cluster(n)); % write to a label file
-
