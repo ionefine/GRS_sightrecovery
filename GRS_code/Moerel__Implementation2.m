@@ -7,7 +7,7 @@ close all
 % auditory ROIS
 % Marty's, Mello
 % implement a pwelch
-% run the whole brain, and save all the interesting voxe
+% run the whole brain, and save all the interesting voxels
 
 %% flags for what to run
 whois='IF';
