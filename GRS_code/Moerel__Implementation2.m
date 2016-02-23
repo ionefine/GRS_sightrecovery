@@ -4,20 +4,21 @@ close all
 
 %% TODO
 % right hemisphere ventral
-% auditory ROIS
+
 % Marty's, Mello
 % implement a pwelch
+% read the Moerel paper
 % run the whole brain, and save all the interesting voxels
 
 %% flags for what to run
 whois='IF';
 % subject and hemisphere list
-hemi_list={'rh'}; h=1; % eventually do both hemispheres
+hemi_list={'lh'}; h=1; % eventually do both hemispheres
 sub_anat='mmSR20151113'; % anatomy data
 
 nStim=72;
 session_dir={['Audiostim.sm0.', hemi_list{h}]};
-roifilename={  '.MT.label'}%'.V2.label', ,'.TS.VTC_first.label','.V1.label',, '.BA45.label'
+roifilename={ 'lh.Aud.partial.label', 'lh.aud2.too_big.label', 'lh.MT.label', 'rh.MT.label', 'rh.TS.VTC_first.label' , 'lh.TS.VTC_first.label' }%'.V2.label', ,'.TS.VTC_first.label','.V1.label',, '.BA45.label'
 % the first file is used as the sort index
 writeroifilename={'.V1_CA.label', '.V2_CA.label', '.TS.VTC_first_CA.label', '.MT_CA.label', '.BA6_CA.label',  '.BA45_CA.label'};
 %% set up directories
@@ -35,7 +36,7 @@ addpath(genpath(code_dir))
 %% read in and analyse audio files
 cd(audio_dir)
 audioFilenames=Stim_List_As_Presented_Nov_2016;
-freq_bins=round(exp(linspace(log(50), log(5000), 5)));
+freq_bins=round(exp(linspace(log(500), log(5000), 8)));
 freq_bins=[0,freq_bins, inf];
 % find the power in each frequency bin
 for a=1:length(audioFilenames)
@@ -64,9 +65,9 @@ for r=1:length(roifilename)
     disp(['loading ', roifilename{r}])
     cd(anatomies_dir)
     cd([sub_anat,filesep, 'label'])
-    [roi(r).vertex,x, y, z]=readCortexLabels([hemi_list{h}, roifilename{r}]);
+    [roi(r).vertex,x, y, z]=readCortexLabels([roifilename{r}]);
     clear vox voxb
-    for rep=1:10
+    for rep=1:2
         AM=A;
         for v=1:length(roi(r).vertex)
             if var(beta(roi(r).vertex(v)+1,:))>0
@@ -85,19 +86,19 @@ for r=1:length(roifilename)
     end
     subplot(2, ceil(length(roifilename)/2), r)
     
-    statLims=prctile([vox(2:9,:).err], [1, 5]); % do any voxels have fit values significantly higher or lower than expected?
-    n=hist([vox(1,:).err],5:30);n=n./sum(n);
-    nb=hist([vox(2:end,:).err],5:30);nb=nb./sum(nb);
-    plot(5:30, n, 'r-', 'LineWidth', 2);hold on;
-    plot(5:30, nb, 'k-', 'LineWidth', 1);
+    statLims=prctile([vox(2:end,:).err], [1, 5]); % do any voxels have fit values significantly higher or lower than expected?
+    [n, bins]=hist([vox(1,:).err],5:40);n=n./sum(n);
+    [nb, bins]=hist([vox(2:end,:).err],5:40);nb=nb./sum(nb);
+    plot(bins, n, 'r-', 'LineWidth', 2);hold on;
+    plot(bins, nb, 'k-', 'LineWidth', 1);
     plot([statLims(1) statLims(1)], [0 max(n)*1.1])
     set(gca, 'YLim', [0 max(n)*1.1])
     title(roifilename{r})
     drawnow
-    ind=find([vox(1,:).err]<statLims(1));
-    W=[vox(ind).W]';
-    
-    imagesc(W)
+%     ind=find([vox(1,:).err]<statLims(1));
+%     W=[vox(ind).W]';
+%     
+%     imagesc(W)
     %     T = clusterdata(W,10.5);
     %
     %     for p=1:10
