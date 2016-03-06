@@ -1,0 +1,109 @@
+# FSBUILD freesurfer-Linux-centos6_x86_64-stable-pub-v5.3.0
+# MKAVERSION $Id: mkanalysis-sess,v 1.64.2.5 2013/01/22 21:52:07 greve Exp $
+# MKACMD /usr/local/freesurfer/stable5_3/fsfast/bin/mkanalysis-sess -fsd bold -stc up -surface self rh -fwhm 0 -runlistfile AudioRuns_full -event-related -paradigm AudStim.para -nconditions 72 -spmhrf 0 -TR 1.5 -refeventdur 1.5 -nskip 0 -polyfit 2 -mask brain -mcextreg -analysis AudioRuns_full.sm0.rh -per-run -force
+# DATE Fri Mar  4 20:52:40 PST 2016
+
+analysis AudioRuns_full.sm0.rh
+mcstem fmcpr
+fsd bold
+runlistfile AudioRuns_full
+TR 1.5
+RegDOF 6
+PerSession 0
+RawSpace surface self rh
+mask brain
+RawFWHM 0
+RawSTC up
+UseB0DC 0
+ApplySubCortMask 1
+inorm 100
+acfbins 30
+fixacf  1
+acffwhm 20
+acfsvd  0
+designtype event-related
+nskip 0
+polyfit 2
+HPFCutoffHz 0
+HeteroGCor 0
+nconditions 72
+parname AudStim.para
+RefEventDur 1.5
+timewindow 40.000000
+prestim 0
+TER 0.050000
+spmhrf 0
+stimulusdelay -.75000000000000000000
+Condition 1 Condition01
+Condition 2 Condition02
+Condition 3 Condition03
+Condition 4 Condition04
+Condition 5 Condition05
+Condition 6 Condition06
+Condition 7 Condition07
+Condition 8 Condition08
+Condition 9 Condition09
+Condition 10 Condition10
+Condition 11 Condition11
+Condition 12 Condition12
+Condition 13 Condition13
+Condition 14 Condition14
+Condition 15 Condition15
+Condition 16 Condition16
+Condition 17 Condition17
+Condition 18 Condition18
+Condition 19 Condition19
+Condition 20 Condition20
+Condition 21 Condition21
+Condition 22 Condition22
+Condition 23 Condition23
+Condition 24 Condition24
+Condition 25 Condition25
+Condition 26 Condition26
+Condition 27 Condition27
+Condition 28 Condition28
+Condition 29 Condition29
+Condition 30 Condition30
+Condition 31 Condition31
+Condition 32 Condition32
+Condition 33 Condition33
+Condition 34 Condition34
+Condition 35 Condition35
+Condition 36 Condition36
+Condition 37 Condition37
+Condition 38 Condition38
+Condition 39 Condition39
+Condition 40 Condition40
+Condition 41 Condition41
+Condition 42 Condition42
+Condition 43 Condition43
+Condition 44 Condition44
+Condition 45 Condition45
+Condition 46 Condition46
+Condition 47 Condition47
+Condition 48 Condition48
+Condition 49 Condition49
+Condition 50 Condition50
+Condition 51 Condition51
+Condition 52 Condition52
+Condition 53 Condition53
+Condition 54 Condition54
+Condition 55 Condition55
+Condition 56 Condition56
+Condition 57 Condition57
+Condition 58 Condition58
+Condition 59 Condition59
+Condition 60 Condition60
+Condition 61 Condition61
+Condition 62 Condition62
+Condition 63 Condition63
+Condition 64 Condition64
+Condition 65 Condition65
+Condition 66 Condition66
+Condition 67 Condition67
+Condition 68 Condition68
+Condition 69 Condition69
+Condition 70 Condition70
+Condition 71 Condition71
+Condition 72 Condition72
+nuisreg mcprextreg 3

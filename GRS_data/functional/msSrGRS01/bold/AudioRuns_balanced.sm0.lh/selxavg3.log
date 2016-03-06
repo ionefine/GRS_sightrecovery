@@ -1,0 +1,72 @@
+cd /project_space/Finelab/GRS_sightrecovery/GRS_data/functional/msSrGRS01
+/usr/local/freesurfer/stable5_3/fsfast/bin/selxavg3-sess -sf ms01 -df sessdir -analysis AudioRuns_balanced.sm0.lh -no-con-ok
+Found 65524/147745 (44.3) voxels in mask
+Creating Design Matrix
+ ... creation time =  0.071 sec
+DoMCFit = 1
+ntptot = 720, nX = 96, DOF = 624
+XCond = 742.298 (normalized)
+AR1 Correction M: 0.166058 1.33441
+OLS Beta Pass 
+  run 1    t= 0.0
+    Global Mean  1331.06
+  run 2    t= 2.8
+    Global Mean  1337.10
+  run 3    t= 5.7
+    Global Mean  1327.31
+  run 4    t= 8.0
+    Global Mean  1349.03
+Global In-Mask Mean = 1336.12 (1242.9)
+Rescale Target = 100
+RescaleFactor = 0.0748433
+OLS Residual Pass 
+  run 1    t= 0.0
+  run 2    t= 4.2
+  run 3    t= 8.0
+  run 4    t=11.7
+Smoothing ACF
+Found 0 voxels with corrected AR1 > 0.90
+Whitening
+Computing whitening matrices
+Alloc Sinv: 720 720 30 ...  done t = 0.012068 sec
+  seg   1   2184  nrho1 = 0.138
+  seg   2   2184  nrho1 = 0.168
+  seg   3   2184  nrho1 = 0.191
+  seg   4   2184  nrho1 = 0.210
+  seg   5   2184  nrho1 = 0.228
+  seg   6   2184  nrho1 = 0.244
+  seg   7   2184  nrho1 = 0.256
+  seg   8   2184  nrho1 = 0.267
+  seg   9   2184  nrho1 = 0.277
+  seg  10   2184  nrho1 = 0.288
+  seg  11   2184  nrho1 = 0.299
+  seg  12   2184  nrho1 = 0.310
+  seg  13   2184  nrho1 = 0.322
+  seg  14   2184  nrho1 = 0.333
+  seg  15   2184  nrho1 = 0.346
+  seg  16   2184  nrho1 = 0.358
+  seg  17   2184  nrho1 = 0.369
+  seg  18   2184  nrho1 = 0.379
+  seg  19   2184  nrho1 = 0.389
+  seg  20   2184  nrho1 = 0.398
+  seg  21   2184  nrho1 = 0.408
+  seg  22   2184  nrho1 = 0.420
+  seg  23   2184  nrho1 = 0.434
+  seg  24   2184  nrho1 = 0.447
+  seg  25   2184  nrho1 = 0.459
+  seg  26   2184  nrho1 = 0.470
+  seg  27   2184  nrho1 = 0.483
+  seg  28   2184  nrho1 = 0.499
+  seg  29   2184  nrho1 = 0.520
+  seg  30   2188  nrho1 = 0.557
+GLS Beta Pass 
+  run 1    t= 0.0
+  run 2    t= 5.5
+  run 3    t=10.5
+  run 4    t=15.8
+GLS Residual Pass 
+Found 82221 zero-valued voxels
+Computing contrasts
+Starting contrasts
+cputime-min 1.938500
+fast_selxavg3 done for /project_space/Finelab/GRS_sightrecovery/GRS_data/functional/msSrGRS01

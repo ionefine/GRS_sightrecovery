@@ -9,6 +9,9 @@ close all
 % implement a pwelch
 % read the Moerel paper
 % run the whole brain, and save all the interesting voxels
+%implement NSL bandpass filters ala Morele {http://www.isr.umd.edu/Labs/NSL/Software.htm;} in place of bins
+    %moerel 2012 :128 --> 40 bins uniformly distributed on a logarithmic frequency axis; center frequency ranges from 186 to 6817 Hz
+
 
 %% flags for what to run
 whois='IF';
@@ -39,7 +42,7 @@ audioFilenames=Stim_List_As_Presented_Nov_2016;
 freq_bins=round(exp(linspace(log(500), log(5000), 8)));
 freq_bins=[0,freq_bins, inf];
 % find the power in each frequency bin
-for a=1:length(audioFilenames)
+for a=1:length(audioFilenames)  
     [y,Fs] = audioread(audioFilenames{a}) ; y=y(:, 1);
     maxt = length(y)/Fs;
     t = linspace(0,maxt,length(y));
