@@ -16,19 +16,32 @@ function v5 = wav2aud(x, paras, filt, VERB)
 %	COCHBA  = [cochfil]; (IIR filter)
 %	cochfil : (L-by-M) [M]-channel filterbank impulse responses.
 %
+
+%%%%%%%%%%%%%%%%%%%%%%%%%
 %	PARAS	= [frmlen, tc, fac, shft];
-%	frmlen	: frame length, typically, 8, 16 or 2^[natural #] ms.
-%	tc	: time const., typically, 4, 16, or 64 ms, etc.
-%		  if tc == 0, the leaky integration turns to short-term avg.
-%	fac	: nonlinear factor (critical level ratio), typically, .1 for
-%		  a unit sequence, e.g., X -- N(0, 1);
-%		  The less the value, the more the compression.
-%		  fac = 0,  y = (x > 0),   full compression, booleaner.
-%		  fac = -1, y = max(x, 0), half-wave rectifier
-%		  fac = -2, y = x,         linear function
-%	shft	: shifted by # of octave, e.g., 0 for 16k, -1 for 8k,
+
+    %	frmlen	: frame length, typically, 8, 16 or 2^[natural #] ms.
+    %	tc	: time const., typically, 4, 16, or 64 ms, etc.
+    %		  if tc == 0, the leaky integration turns to short-term avg.
+    %	fac	: nonlinear factor (critical level ratio), typically, .1 for
+    %		  a unit sequence, e.g., X -- N(0, 1);
+    %		  The less the value, the more the compression.
+    %		  fac = 0,  y = (x > 0),   full compression, booleaner.
+    %		  fac = -1, y = max(x, 0), half-wave rectifier
+    %		  fac = -2, y = x,         linear function
+    %	shft	: shifted by # of octave, e.g., 0 for 16k, -1 for 8k,
 %		  etc. SF = 16K * 2^[shft].%	
-%
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%T.Savage notes:
+% Files are resampled to 12000 auromatically on load via the gui
+%Readme file mentiones sampling down to 8000.  Not usre why.  
+
+% frmlen {stg.fs in the default settings} is 8
+% tc {stg.fs in the default settings} is 8
+% file length divided by one of these numbers = length of output matrix {n * 128}
+
+
 %	filt	: filter type, 'p'--> Powen's IIR filter (default)
 %			       'p_o' --> Powen's old IIR filter (steeper group delay)	
 %	
@@ -73,6 +86,9 @@ if (filt=='k')
 end
 
 if (filt == 'p_o') load aud24_old;
+    
+elseif (filt=='fun') load aud24 %use this flad to use as a standalone
+    
 else global COCHBA; end;
 
 [L, M] = size(COCHBA);	% p_max = L - 2;

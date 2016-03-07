@@ -1,6 +1,6 @@
 
 clear all
-close all
+% close all
 
 %% TODO
 % right hemisphere ventral
@@ -18,41 +18,91 @@ whois='IF';
 % subject and hemisphere list
 hemi_list={'lh'}; h=1; % eventually do both hemispheres
 sub_anat='mmSR20151113'; % anatomy data
-
+sub_fun='msSrGRS01'
 nStim=72;
 session_dir={['Audiostim.sm0.', hemi_list{h}]};
-roifilename={ 'lh.Aud.partial.label', 'lh.aud2.too_big.label', 'lh.MT.label', 'rh.MT.label', 'rh.TS.VTC_first.label' , 'lh.TS.VTC_first.label' }%'.V2.label', ,'.TS.VTC_first.label','.V1.label',, '.BA45.label'
+roifilename={ 'lh.Aud.partial.label', 'lh.aud2.too_big.label', 'lh.MT.label', 'rh.MT.label', 'rh.TS.VTC_first.label' , 'lh.TS.VTC_first.label' };%'.V2.label', ,'.TS.VTC_first.label','.V1.label',, '.BA45.label'
 % the first file is used as the sort index
 writeroifilename={'.V1_CA.label', '.V2_CA.label', '.TS.VTC_first_CA.label', '.MT_CA.label', '.BA6_CA.label',  '.BA45_CA.label'};
 %% set up directories
-if 0
-    code_dir='/project_space/Finelab/GRS_sightrecovery';
-    anatomies_dir='/project_space/Finelab/GRS_sightrecovery/GRS_data/anatomies';
-elseif strcmp(whois, 'IF')
-    code_dir='C:\Users\Ione Fine\Documents\Work\Science\Projects\Tristram Savage\GRS_sightrecovery\GRS_code';
-    anatomies_dir='C:\Users\Ione Fine\Documents\Work\Science\Projects\Tristram Savage\GRS_sightrecovery\GRS_data\anatomies';
-    functional_dir='C:\Users\Ione Fine\Documents\Work\Science\Projects\Tristram Savage\GRS_sightrecovery\GRS_data\functional\mmSRGRS02\bold';
-    audio_dir='C:\Users\Ione Fine\Documents\Work\Science\Projects\Tristram Savage\GRS_sightrecovery\GRS_stimfiles';
-end
+
+% %%%%Normal dirs
+% % if 0
+% %     code_dir='/project_space/Finelab/GRS_sightrecovery';
+% %     anatomies_dir='/project_space/Finelab/GRS_sightrecovery/GRS_data/anatomies';
+% % elseif strcmp(whois, 'IF')
+% %     code_dir='C:\Users\Ione Fine\Documents\Work\Science\Projects\Tristram Savage\GRS_sightrecovery\GRS_code';
+% %     anatomies_dir='C:\Users\Ione Fine\Documents\Work\Science\Projects\Tristram Savage\GRS_sightrecovery\GRS_data\anatomies';
+% %     functional_dir='C:\Users\Ione Fine\Documents\Work\Science\Projects\Tristram Savage\GRS_sightrecovery\GRS_data\functional\mmSRGRS02\bold';
+% %     audio_dir='C:\Users\Ione Fine\Documents\Work\Science\Projects\Tristram Savage\GRS_sightrecovery\GRS_stimfiles';
+% % end
+
+% Home deskrop dirs
+%%Normal dirs
+
+    code_dir='Z:\Dropbox\Git\GRS_sightrecovery\GRS_code';
+    anatomies_dir='Z:\Dropbox\Git\GRS_sightrecovery\GRS_data\anatomies';
+    functional_dir='Z:\Dropbox\Git\GRS_sightrecovery\GRS_data\functional';
+    audio_dir='Z:\Dropbox\Git\GRS_sightrecovery\GRS_stimfiles';
+
+
+
 addpath(genpath(code_dir))
 
 %% read in and analyse audio files
+
+
+
+
+% 
+
 cd(audio_dir)
 audioFilenames=Stim_List_As_Presented_Nov_2016;
-freq_bins=round(exp(linspace(log(500), log(5000), 8)));
-freq_bins=[0,freq_bins, inf];
-% find the power in each frequency bin
+
+para=[8.0000    8.0000   -2.0000   -0.4150]; %taken as default values from nsl toolbox
+%may need to be changed is we customize much
+rFs=12000;
+
+
 for a=1:length(audioFilenames)  
-    [y,Fs] = audioread(audioFilenames{a}) ; y=y(:, 1);
-    maxt = length(y)/Fs;
-    t = linspace(0,maxt,length(y));
-    Y = complex2real(fft(y),t);
-    for f=1:length(freq_bins)-1
-        ind=find(Y.freq>freq_bins(f) & Y.freq<freq_bins(f+1));
-        A(a, f)=mean(Y.amp(ind));
-    end
+    [y,Fs] = audioread(audioFilenames{a});% ; y=y(:, 1);
+    yRsmp=resample(y,rFs,Fs);
+    ySpect3=wav2aud(yRsmp',para,'fun');
+    A(a,:)=mean(ySpect3);
+    
+    
 end
+
+
+
+% 
+% 
+% cd(audio_dir)
+% audioFilenames=Stim_List_As_Presented_Nov_2016;
+% freq_bins=round(exp(linspace(log(500), log(5000), 8)));
+% freq_bins=[0,freq_bins, inf];
+
+% 
+% % find the power in each frequency bin
+% for a=1:length(audioFilenames)  
+%     [y,Fs] = audioread(audioFilenames{a}) ; y=y(:, 1);
+%     maxt = length(y)/Fs;
+%     t = linspace(0,maxt,length(y));
+%     Y = complex2real2(fft(y),t);
+%     for f=1:length(freq_bins)-1
+%         ind=find(Y.freq>freq_bins(f) & Y.freq<freq_bins(f+1));
+%         A(a, f)=mean(Y.amp(ind));
+%     end
+% end
+% 
+% 
+% 
+
+
+
 A=A(1:nStim,:);
+figure
+imagesc(A)
 %% load in the beta weights
 cd([functional_dir, filesep, session_dir{1}]);
 if strcmp(whois, 'IF')

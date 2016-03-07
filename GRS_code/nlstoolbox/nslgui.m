@@ -1,3 +1,7 @@
+%%%T.Savage notes:
+% Files are resampled to 12000 auromatically on load
+
+
 function varargout = nslgui(varargin)
 % NSLGUI Application M-file for nslgui.fig
 %    FIG = NSLGUI launch nslgui GUI.
@@ -459,10 +463,11 @@ global nsl;
 soundfile=get(handles.popupmenu1,'String');
 soundfile=soundfile{get(handles.popupmenu1,'Value')};
 if soundfile(end-2:end)=='wav'
-    [nsl.wav,ofs]=wavread([handles.soundpath '/' soundfile]);
+    [nsl.wav,ofs]=audioread([handles.soundpath '/' soundfile]);
 else
-    [nsl.wav,ofs]=auread([handles.soundpath '/' soundfile]);
+    [nsl.wav,ofs]=audioread([handles.soundpath '/' soundfile]);
 end
+
 if ofs~=stg.fs
     nsl.wav=resample(nsl.wav,stg.fs,ofs);
 end
